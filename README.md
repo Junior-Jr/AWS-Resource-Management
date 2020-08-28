@@ -1,1 +1,1 @@
-# AWS-Resouce-Management
+# AWS-Resource-Management
