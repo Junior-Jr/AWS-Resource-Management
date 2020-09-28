@@ -1,6 +1,6 @@
-import sys
 import boto3
-import yaml
+
+
 ec2 = boto3.resource('ec2')
 client = boto3.client('ec2')
 
@@ -15,7 +15,8 @@ def main():
 
         [1] Show Instance
         [2] Create Instance
-        [3] Terminate Instance
+        [3] Stop Instance
+        [4] Terminate Instance
         [0] Exit
         """)
         
@@ -26,6 +27,15 @@ def main():
 
         elif menu_select == '2':
             create_instance()
+
+        elif menu_select == '3':
+            stop_instance()
+
+        elif menu_select == '4':
+            terminate_instance()
+
+        elif menu_select == '5':
+            timer()
 
         elif menu_select == '0':
             sys.exit()
@@ -41,7 +51,12 @@ def describe_instance_state():
             },
         ]
     )
-    print yaml.dump(responses, default_flow_style=False)
+
+    for reservation in responses["Reservations"]:
+        for instance in reservation["Instances"]:
+            instance_value = (instance["InstanceId"])
+
+    print(instance_value)
             
 def create_instance():
 
@@ -65,6 +80,29 @@ def create_instance():
         ]
     )
     print('EC2 Instance created')
-    print('Student ID: ' + studentID)
+
+def stop_instance():
+
+    stop_response = client.stop_instances(
+        InstanceIds = [
+            'i-0e52cc2bcfb013d80',
+        ],
+        Force = True
+    )
+    print('EC2 Instance stopped')
+    
+
+def terminate_instance():
+
+    terminate_response = client.terminate_instances(
+        InstanceIds = [
+            'i-0e52cc2bcfb013d80',
+        ]
+    )
+
+    print('EC2 Instance terminated')
+
+
+
 
 main()
