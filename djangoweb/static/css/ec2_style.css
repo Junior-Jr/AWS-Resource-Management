@@ -1,0 +1,18 @@
+.card {
+    margin-top: 7%;
+}
+
+.table th {
+    white-space: nowrap;
+    width: 1%;
+}
+
+#start {
+    margin-bottom: 7%;
+}
+
+.navbar-text {
+    position: relative;
+    left: 50%;
+    transform: translate(-50%,0%);
+}

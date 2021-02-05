@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static '/css/style.css' %}">
+    <meta name="google-signin-scope" content="profile email">
+    <meta name="google-signin-client_id" content="773865792273-bmfeq59m4ngolie007m7sgmgneourc7s.apps.googleusercontent.com">
+    <link rel="icon" href="https://www.it.kmitl.ac.th/wp-content/uploads/2017/12/cropped-it-logo-180x180.png">
+
+    <title>AWS Resource Management | IT KMITL</title>
+</head>
+<body>
+    
+    <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-sm">
+            
+          </div>
+          <div class="col-sm">
+            <div class="card text-center shadow-lg p-4 mb-5 rounded" id="login-card">
+                <img src="{% static '/images/nav-thai.svg' %}" class="card-img-top" alt="IT-KMITL-Logo">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">AWS Resource Management System | IT KMITL</li>
+                        <li class="list-group-item"><div id="my-signin2"></div></li>
+                        <li class="list-group-item text-muted">Use KMITL Account to Sign in</li>
+                </div>
+              </div>
+          </div>
+          <div class="col-sm">
+            
+          </div>
+        </div>
+      </div>
+    <nav class="navbar text-center fixed-bottom navbar-light bg-light ">
+        <span class="navbar-text">
+            Developed By Super Junior
+        </span>
+    </nav>
+
+    <script>
+        function onSuccess(googleUser) {
+            console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+        }
+        function onFailure(error) {
+            console.log(error);
+        }
+        function renderButton() {
+            gapi.signin2.render('my-signin2', {
+            'scope': 'profile email',
+            'width': 350,
+            'height': 50,
+            'longtitle': true,
+            'theme': 'dark',
+            'onsuccess': onSuccess,
+            'onfailure': onFailure
+            });
+        }
+    </script>
+    
+    <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+    <script src="https://apis.google.com/js/platform.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+</body>
+</html>
