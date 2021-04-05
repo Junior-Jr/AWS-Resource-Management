@@ -1,65 +1,47 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import React from 'react';
+import { Layout } from 'antd'
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import logo from './nav-thai.svg'
 import './App.css';
-import { Divider, Menu, Typography } from 'antd';
-import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons';
 import Class from './components/Class';
-import PolicyEditor from './components/PolicyEditor';
+import ClassDetail from './views/ClassDetail';
+import Exam from './components/Exam';
+import Navbar from './components/Navbar';
+import Error500 from './components/Error500';
 
-const { SubMenu } = Menu;
-const { Text } = Typography;
+const { Header, Content, Footer } = Layout;
 
 function App() {
 
-  const [current, setCurrent] = useState('class');
-
-  const handleClick = (event) => {
-    console.log('click', event);
-    setCurrent(event.key);
-  }
-
   return (
     <Router>
-      <Menu className='Navbar' onClick={handleClick} selectedKeys={[current]} mode="horizontal">
-        <Text>AWS Resource Management System</Text>
-        <Divider type="vertical" />
-        <Menu.Item key="class" icon={<MailOutlined />}>
-          <Link to='/class'>
-            Class Management
-            </Link>
-        </Menu.Item>
-        <Menu.Item key="exam" icon={<AppstoreOutlined />}>
-          <Link to='/policy-editor'>
-            Exam Management
-          </Link>
-        </Menu.Item>
-        <SubMenu key="SubMenu" icon={<SettingOutlined />} title="Project Management">
-          <Menu.ItemGroup title="Item 1">
-            <Menu.Item key="setting:1">Option 1</Menu.Item>
-            <Menu.Item key="setting:2">Option 2</Menu.Item>
-          </Menu.ItemGroup>
-          <Menu.ItemGroup title="Item 2">
-            <Menu.Item key="setting:3">Option 3</Menu.Item>
-            <Menu.Item key="setting:4">Option 4</Menu.Item>
-          </Menu.ItemGroup>
-        </SubMenu>
-        <Menu.Item key="cost" icon={<AppstoreOutlined />}>
-          Cost Control
-        </Menu.Item>
-      </Menu>
-
-      <Switch>
-        <Route path="/">
-          <Class />
-        </Route>
-        <Route path="/policy-editor">
-          <PolicyEditor />
-        </Route>
-      </Switch>
+      <Layout>
+        <Header>
+          <img className='App-logo' src={logo} alt='it-kmitl-logo' />
+          <Navbar />
+        </Header>
+        <Content>
+          <Switch>
+            <Route exact path="/class">
+              <Class />
+            </Route>
+            <Route path="/class/:subject_id/:aws_tag_value">
+              <ClassDetail />
+            </Route>
+            <Route path="/exam">
+              <Exam />
+            </Route>
+            <Route path="*">
+              <Error500 />
+            </Route>
+          </Switch>
+        </Content>
+        <Footer style={{ textAlign: 'center' }}>
+          ©2021 Faculty of Information Technology, KMITL | Developed by Possathon and Apinant
+        </Footer>
+      </Layout>
     </Router>
   );
 }
-
-
 
 export default App;

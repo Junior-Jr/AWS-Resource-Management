@@ -5,11 +5,13 @@ const Schema = mongoose.Schema;
 const subjectSchema = new Schema({
   subject: String,
   lecturer: String,
-  section: String
+  section: String,
+  aws_tag_value: String
 },
-{   timestamps: true, 
+  {
+    timestamps: true,
     versionKey: false
-}
+  }
 );
 
 const subjectModel = mongoose.model('subject', subjectSchema);

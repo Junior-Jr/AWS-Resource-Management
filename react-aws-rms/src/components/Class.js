@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Button, Card, Col, Divider, Form, Input, Modal, Row, Spin, Statistic, Tooltip } from "antd";
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Button, Card, Col, Form, Input, message, Modal, PageHeader, Popconfirm, Row, Spin, Statistic, Tooltip } from "antd";
+import { ExclamationCircleOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import Error500 from './Error500';
 
 const axios = require('axios');
@@ -10,7 +11,7 @@ function Class() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
-  const [update, setUpdate] = useState('');
+  const [update, setUpdate] = useState(['']);
   const [subject, setSubject] = useState('');
   const [lecturer, setLecturer] = useState('');
   const [section, setSection] = useState('');
@@ -36,39 +37,35 @@ function Class() {
   }
 
   const addSubject = async () => {
-
-    axios.post('http://localhost:9000/api/subject', {
-      'subject': subject,
-      'lecturer': lecturer,
-      'section': section,
-      'awsTag': awsTag
-    })
-
-      .then(function (response) {
-        console.log(response)
+    try {
+      message.success(`${subject} created successfully`, 2.75)
+      const response = await axios.post('http://localhost:9000/api/subject', {
+        'subject': subject,
+        'lecturer': lecturer,
+        'section': section,
+        'aws_tag_value': awsTag
       })
-      .catch(function (error) {
-        console.log(error)
-      });
+      setUpdate('add');
+      console.log(response.data)
 
+    } catch (error) {
+      console.log(error)
+    };
     setIsModalVisible(false);
-    setUpdate('add');
   }
 
-  const deleteSubject = (id) => {
-    console.log('click')
-    console.log(id)
-    axios.post('http://localhost:9000/api/delete', {
-      'id': id
-    })
-      .then(function (response) {
-        console.log(response)
+  const deleteSubject = async (id, subject) => {
+    try {
+      message.success(`${subject} deleted`, 2.75)
+      const response = await axios.post('http://localhost:9000/api/subject/delete', {
+        'id': id
       })
-      .catch(function (error) {
-        console.log(error)
-      });
+      setUpdate('delete');
+      console.log(response.data)
 
-    setUpdate('delete');
+    } catch (error) {
+      console.log(error)
+    };
   }
 
   const renderSubject = () => {
@@ -76,13 +73,30 @@ function Class() {
     return data.map(data => {
       return (
         <Col span={12} justify='center'>
-          <Card title={data.subject} extra={<a>Enter</a>} style={{ width: 500 }} actions={[<DeleteOutlined onClick={() => deleteSubject(data._id)} />,]}>
+          <Card
+            title={data.subject}
+            extra={<Link to={'/class/' + data._id + '/' + data.aws_tag_value}>Enter</Link>}
+            style={{ width: 500 }}
+            actions={[
+              <Popconfirm
+                title='Are you sure to delete this exam?'
+                icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
+                okText='Delete'
+                onConfirm={() => (deleteSubject(data._id, data.subject))}
+              >
+                <DeleteOutlined />
+              </Popconfirm>
+
+              ,]}>
             <Row gutter={[16, 16]}>
               <Col span={6}>
-                <Statistic title="Section" value={data.section} />
+                <Statistic title='Section' value={data.section} />
               </Col>
               <Col span={6}>
-                <Statistic title="Lecturer" value={data.lecturer} />
+                <Statistic title='Lecturer' value={data.lecturer} />
+              </Col>
+              <Col span={6}>
+                <Statistic title='AWS Tag Value' groupSeparator='' value={data.aws_tag_value} />
               </Col>
             </Row>
             <Row gutter={[16, 16]}>
@@ -125,10 +139,13 @@ function Class() {
 
   return (
     <div>
-      <Button type='primary' icon={<PlusOutlined />} key='delete' onClick={showModal}>
-        Add Class
-      </Button>
-      <Modal title="Add Class" visible={isModalVisible} okType='primary' okText='Add' onOk={addSubject} onCancel={handleCancel}>
+      <PageHeader className='page-header' extra={[
+        <Button type='primary' icon={<PlusOutlined />} key='delete' onClick={showModal}>
+          Add Class
+        </Button>,
+      ]}>
+      </PageHeader>
+      <Modal title='Add Class' visible={isModalVisible} okType='primary' okText='Add' onOk={addSubject} onCancel={handleCancel}>
         <Form onFinish={onFinish}>
           <Form.Item label='Subject'>
             <Input type='text' value={subject} name='subject' onChange={(event) => setSubject(event.target.value)} autoComplete='off' />
@@ -139,16 +156,15 @@ function Class() {
           <Form.Item label='Section'>
             <Input type='text' value={section} name='section' onChange={(event) => setSection(event.target.value)} autoComplete='off' />
           </Form.Item>
-          <Form.Item label='AWS Resource Tag'>
+          <Form.Item label='AWS Resource Tag Value'>
             <Tooltip title='Please Enter AWS Resource Tag Exactly Match on AWS' color='yellow' placement='bottomLeft'>
               <Input type='text' value={awsTag} name='awsTag' onChange={(event) => setAWSTag(event.target.value)} autoComplete='off' />
             </Tooltip>
           </Form.Item>
         </Form>
       </Modal>
-      <Divider />
-      <Row gutter={[16, 16]}>
-        {loading ? (renderSubject()) : (<Spin size="large" />)}
+      <Row className='Card-row' style={{ marginLeft: '7vw' }} gutter={[16, 16]}>
+        {loading ? (renderSubject()) : (<Spin size='large' style={{ marginLeft: '50%' }} />)}
       </Row>
       {renderError()}
     </div>

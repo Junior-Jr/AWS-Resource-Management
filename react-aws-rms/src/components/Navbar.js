@@ -1,62 +1,77 @@
-import React from 'react';
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import './App.css';
-import { Divider, Menu, Typography } from 'antd';
-import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons';
-import Class from './components/Class';
+import { useState } from 'react';
+import { Link } from "react-router-dom";
+import { Avatar, Button, Divider, Dropdown, Menu } from 'antd';
+import { CreditCardOutlined, DownOutlined, LogoutOutlined, PlusOutlined, ProjectOutlined, SolutionOutlined, TeamOutlined } from '@ant-design/icons';
 
-const { SubMenu } = Menu;
-const { Text } = Typography;
+function Navbar() {
 
-class Navbar extends React.Component {
-  state = {
-    current: 'class',
-  };
+  const [current, setCurrent] = useState('class');
 
-  handleClick = e => {
-    console.log('click ', e);
-    this.setState({ current: e.key });
-  };
-
-  render() {
-    const { current } = this.state;
-    return (
-      <Router>
-        <Menu className='Navbar' onClick={this.handleClick} selectedKeys={[current]} mode="horizontal">
-          <Text>AWS Resource Management System</Text>
-          <Divider type="vertical" />
-          <Menu.Item key="class" icon={<MailOutlined />}>
-            <Link to='/class'>
-            Class Management
-            </Link>
-        </Menu.Item>
-          <Menu.Item key="exam" icon={<AppstoreOutlined />}>
-            Exam Management
-        </Menu.Item>
-          <SubMenu key="SubMenu" icon={<SettingOutlined />} title="Project Management">
-            <Menu.ItemGroup title="Item 1">
-              <Menu.Item key="setting:1">Option 1</Menu.Item>
-              <Menu.Item key="setting:2">Option 2</Menu.Item>
-            </Menu.ItemGroup>
-            <Menu.ItemGroup title="Item 2">
-              <Menu.Item key="setting:3">Option 3</Menu.Item>
-              <Menu.Item key="setting:4">Option 4</Menu.Item>
-            </Menu.ItemGroup>
-          </SubMenu>
-          <Menu.Item key="cost" icon={<AppstoreOutlined />}>
-            Cost Control
-        </Menu.Item>
-        </Menu>
-
-        <Switch>
-          <Route path="/class">
-            <Class />
-          </Route>
-        </Switch>
-      </Router>
-    );
+  const handleClick = (event) => {
+    setCurrent(event.key);
   }
-}
 
+  const handleMenuClick = (event) => {
+
+  }
+
+  const dropdownMenu = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item icon={<TeamOutlined />}>
+        Class
+      </Menu.Item>
+      <Menu.Item icon={<SolutionOutlined />}>
+        Exam
+      </Menu.Item>
+      <Menu.Item icon={<ProjectOutlined />}>
+        Project
+      </Menu.Item>
+    </Menu>
+  );
+
+  const dropdownUser = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item icon={<LogoutOutlined />}>
+        Log out
+      </Menu.Item>
+    </Menu>
+  );
+
+  return (
+
+    <Menu className='Navbar' onClick={handleClick} selectedKeys={[current]} mode="horizontal">
+      <Divider type="vertical" />
+      <Menu.Item key="class" icon={<TeamOutlined />}>
+        <Link to='/class'>Class Management</Link>
+      </Menu.Item>
+      <Menu.Item key="exam" icon={<SolutionOutlined />}>
+        <Link to='/exam'>Exam Management</Link>
+      </Menu.Item>
+      <Menu.Item key="project" icon={<ProjectOutlined />}>
+        <Link to='/project'>Project Management</Link>
+      </Menu.Item>
+      <Menu.Item key="cost" icon={<CreditCardOutlined />}>
+        <Link to='/cost'>Cost Control</Link>
+      </Menu.Item>
+      <Divider type="vertical" />
+      <Dropdown overlay={dropdownMenu} trigger={['click']}>
+        <Button type='primary' shape='circle'>
+          <PlusOutlined />
+        </Button>
+      </Dropdown>
+      <Avatar
+        size={{ xs: 24, sm: 32, md: 40, lg: 40, xl: 40, xxl: 40 }}
+      >
+        PC
+      </Avatar>
+      <Dropdown overlay={dropdownUser} trigger={['click']}>
+        <Button>
+          Possathon <DownOutlined />
+        </Button>
+      </Dropdown>
+    </Menu >
+
+  )
+}
 
 export default Navbar;
