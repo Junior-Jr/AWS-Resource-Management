@@ -11,20 +11,20 @@ function ClassDetail() {
     const [ec2, setEC2] = useState([])
     const [s3, setS3] = useState([])
     const [isError, setIsError] = useState(false)
-
+    const [vpcDetail, setVPC] = useState([])
     const { TextArea } = Input
 
 
     useEffect(() => {
         getEC2Detail()
         getS3Detail()
-        getVPCDetail()
     }, [])
 
     const getEC2Detail = async () => {
         try {
             const response = await axios.get(`http://localhost:9000/api/ec2/filter/by-tag-value/${aws_tag_value}`)
             setEC2(response.data)
+            await getVPCDetail(response.data)
             console.log(ec2)
 
         } catch (error) {
@@ -45,16 +45,15 @@ function ClassDetail() {
         }
     }
 
-    const getVPCDetail = async () => {
+    const getVPCDetail = async (ec2Instance) => {
         try {
             let vpcArr = []
-            for (let index = 0; index < ec2.length; index++) {
-                vpcArr.push(ec2[index].VpcId)
-            }
-            console.log('arr', vpcArr)
+            ec2Instance?.map((instance) => vpcArr.push(instance.VpcId))
+
             const response = await axios.post('http://localhost:9000/api/ec2/vpc', {
                 'vpcIds': vpcArr
             })
+            setVPC(response.data)
 
         } catch (error) {
             console.log('error vpc', error)
