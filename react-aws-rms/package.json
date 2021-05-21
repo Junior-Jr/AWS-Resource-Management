@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@aws-sdk/client-cost-explorer": "^3.14.0",
     "@aws-sdk/client-ec2": "^3.8.1",
+    "@aws-sdk/client-rds": "^3.13.1",
+    "@aws-sdk/client-s3": "^3.13.0",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.3",
     "@testing-library/user-event": "^12.6.0",
@@ -11,12 +14,15 @@
     "axios": "^0.21.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "moment": "^2.29.1",
     "mongodb": "^3.6.3",
     "mongoose": "^5.11.13",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-moment": "^1.1.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
+    "victory": "^35.5.1",
     "web-vitals": "^0.2.4"
   },
   "scripts": {

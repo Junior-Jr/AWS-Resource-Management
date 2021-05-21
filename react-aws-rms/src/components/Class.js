@@ -1,25 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button, Card, Col, Form, Input, message, Modal, PageHeader, Popconfirm, Row, Spin, Statistic, Tooltip } from "antd";
-import { ExclamationCircleOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import Error500 from './Error500';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { Button, Card, Col, Form, Input, message, Modal, PageHeader, Popconfirm, Row, Spin, Statistic, Tooltip } from "antd"
+import { ExclamationCircleOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import Error500 from './Error500'
 
-const axios = require('axios');
+const axios = require('axios')
 
 function Class() {
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState([]);
-  const [update, setUpdate] = useState(['']);
-  const [subject, setSubject] = useState('');
-  const [lecturer, setLecturer] = useState('');
-  const [section, setSection] = useState('');
-  const [awsTag, setAWSTag] = useState('');
-  const [isError, setIsError] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState([])
+  const [update, setUpdate] = useState([''])
+  const [subject, setSubject] = useState('')
+  const [lecturer, setLecturer] = useState('')
+  const [section, setSection] = useState('')
+  const [awsTag, setAWSTag] = useState('')
+  const [isError, setIsError] = useState(false)
 
   useEffect(() => {
-    getSubject();
+    getSubject()
   }, [update])
 
   const getSubject = async () => {
@@ -79,7 +79,7 @@ function Class() {
             style={{ width: 500 }}
             actions={[
               <Popconfirm
-                title='Are you sure to delete this exam?'
+                title='Are you sure to delete this class?'
                 icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
                 okText='Delete'
                 onConfirm={() => (deleteSubject(data._id, data.subject))}
@@ -168,7 +168,7 @@ function Class() {
       </Row>
       {renderError()}
     </div>
-  );
+  )
 }
 
-export default Class;
+export default Class

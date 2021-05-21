@@ -1,13 +1,16 @@
-import React from 'react';
+import React from 'react'
 import { Layout } from 'antd'
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom"
 import logo from './nav-thai.svg'
-import './App.css';
-import Class from './components/Class';
-import ClassDetail from './views/ClassDetail';
-import Exam from './components/Exam';
-import Navbar from './components/Navbar';
-import Error500 from './components/Error500';
+import './App.css'
+import Class from './components/Class'
+import ClassDetail from './views/ClassDetail'
+import CostDashboard from './views/CostDashboard'
+import Navbar from './components/Navbar'
+import Error500 from './components/Error500'
+import Project from './views/Project'
+import CostControl from './views/CostControl'
+import ProjectDetail from './views/ProjectDetail'
 
 const { Header, Content, Footer } = Layout;
 
@@ -20,16 +23,25 @@ function App() {
           <img className='App-logo' src={logo} alt='it-kmitl-logo' />
           <Navbar />
         </Header>
-        <Content>
+        <Content style={{ overflow: 'initial' }}>
           <Switch>
             <Route exact path="/class">
               <Class />
             </Route>
+            <Route exact path="/project">
+              <Project />
+            </Route>
             <Route path="/class/:subject_id/:aws_tag_value">
               <ClassDetail />
             </Route>
-            <Route path="/exam">
-              <Exam />
+            <Route path="/project/:subject_id/:aws_tag_value">
+              <ProjectDetail />
+            </Route>
+            <Route exact path="/cost-control">
+              <CostControl />
+            </Route>
+            <Route path="/cost-control/:name">
+              <CostDashboard />
             </Route>
             <Route path="*">
               <Error500 />

@@ -5,7 +5,7 @@ import Error500 from '../components/Error500'
 
 const axios = require('axios')
 
-function ClassDetail() {
+function ProjectDetail() {
 
     const { aws_tag_value } = useParams()
     const [ec2, setEC2] = useState([])
@@ -14,22 +14,20 @@ function ClassDetail() {
 
     const { TextArea } = Input
 
-
     useEffect(() => {
         getEC2Detail()
         getS3Detail()
-        getVPCDetail()
     }, [])
 
     const getEC2Detail = async () => {
         try {
-            const response = await axios.get(`http://localhost:9000/api/ec2/filter/by-tag-value/${aws_tag_value}`)
-            setEC2(response.data)
-            console.log(ec2)
+            const response = await axios.get(`http://localhost:9000/api/ec2/filter/by-tag-value/${aws_tag_value}`);
+            setEC2(response.data);
+            console.log(response.data);
 
         } catch (error) {
-            console.error(error)
-            setIsError(true)
+            console.error(error);
+            setIsError(true);
         }
     }
 
@@ -42,22 +40,6 @@ function ClassDetail() {
         } catch (error) {
             console.error(error)
             setIsError(true)
-        }
-    }
-
-    const getVPCDetail = async () => {
-        try {
-            let vpcArr = []
-            for (let index = 0; index < ec2.length; index++) {
-                vpcArr.push(ec2[index].VpcId)
-            }
-            console.log('arr', vpcArr)
-            const response = await axios.post('http://localhost:9000/api/ec2/vpc', {
-                'vpcIds': vpcArr
-            })
-
-        } catch (error) {
-            console.log('error vpc', error)
         }
     }
 
@@ -83,31 +65,18 @@ function ClassDetail() {
                 <Error500 />
             )
         }
-    };
+    }
 
     function callback(key) {
         console.log(key)
     }
 
-    const { TabPane } = Tabs;
+    const { TabPane } = Tabs
 
     const ec2Columns = [
         {
-            title: 'EC2 Tag',
-            dataIndex: 'Tags',
-            render: (dataIndex) => (
-
-                dataIndex.map(data => data.Key + ', ')
-            ),
-            key: ''
-        },
-        {
-            title: 'EC2 Value',
-            dataIndex: 'Tags',
-            render: (dataIndex) => (
-
-                dataIndex.map(data => data.Value + ', ')
-            ),
+            title: 'Owner',
+            dataIndex: ['Tags', 'Key'],
             key: ''
         },
         {
@@ -119,12 +88,6 @@ function ClassDetail() {
             title: 'Instance State',
             dataIndex: ['State', 'Name'],
             render: (dataIndex) => (tagColor(dataIndex)),
-            key: ''
-
-        },
-        {
-            title: 'VPC',
-            dataIndex: 'VpcId',
             key: ''
 
         }
@@ -154,6 +117,8 @@ function ClassDetail() {
                 <TabPane tab='Class Policy' key='1'>
                     <Card id='policy-editor-card' title='Policy Editor'>
                         Please Enter Policy in JSON Format
+                        <Tag color="warning">AWS Account:  lapas</Tag>
+                        <Tag color="warning">IAM Account:  CostExp</Tag>
                         <Tooltip title='Notice! This Policy will Apply to Every IAM Account that under AWS Account you used' color='red' placement='bottomLeft'>
                             <TextArea rows={20} />
                         </Tooltip>
@@ -171,7 +136,7 @@ function ClassDetail() {
                     {renderError()}
                 </TabPane>
                 <TabPane tab='RDS' key='4'>
-
+                    Content of Tab Pane 3
                     {renderError()}
                 </TabPane>
             </Tabs>
@@ -179,4 +144,4 @@ function ClassDetail() {
     )
 }
 
-export default ClassDetail
+export default ProjectDetail
