@@ -6,10 +6,10 @@ const Subject = require('../database/subjectModel.js')
 const Project = require('../database/projectModel.js')
 const REGION = "ap-southeast-1";
 const { fromIni } = require("@aws-sdk/credential-provider-ini");
-const { EC2Client, DescribeInstancesCommand, StopInstancesCommand, DescribeSecurityGroupsCommand, DescribeVpcsCommand, Filter } = require('@aws-sdk/client-ec2')
+const { EC2Client, DescribeInstancesCommand, StopInstancesCommand, DescribeSecurityGroupsCommand, DescribeVpcsCommand, TerminateInstancesCommand } = require('@aws-sdk/client-ec2')
 const { S3Client, ListBucketsCommand, GetBucketTaggingCommand } = require("@aws-sdk/client-s3");
 const { DescribeDBInstancesCommand, RDSClient } = require('@aws-sdk/client-rds')
-const { CostExplorer, CostExplorerClient, GetCostAndUsageCommand, DateInterval } = require('@aws-sdk/client-cost-explorer')
+const { CostExplorer, CostExplorerClient, GetCostAndUsageCommand, DateInterval, GetDimensionValuesCommand } = require('@aws-sdk/client-cost-explorer')
 
 mongoose.connect('mongodb+srv://admin:AWSadmin@cluster0.xasek.mongodb.net/aws-rms?retryWrites=true&w=majority', {
     useNewUrlParser: true
@@ -49,7 +49,7 @@ app.post('/api/subject/delete', async (req, res) => {
     console.log('deleted' + id)
 })
 
-// Exam
+// Project
 
 app.get('/api/project', async (req, res) => {
     const projects = await Project.find({})
@@ -85,8 +85,8 @@ app.get('/api/ec2/describe', async (req, res) => {
 
 app.get('/api/ec2/filter/by-tag-value/:subject', async (req, res) => {
     const { subject } = req.params
-    // let ec2client = new EC2Client({ region: REGION, credentials: fromIni({ profile: 'en-course' }) });
-    let ec2client = new EC2Client({ region: REGION, credentials: fromIni({ profile: 'default' }) });
+    // let ec2client = new EC2Client({ region: REGION, credentials: fromIni({ profile: 'en-course' }) })
+    let ec2client = new EC2Client({ region: 'us-east-1', credentials: fromIni({ profile: 'default' }) })
 
     try {
         let data = await ec2client.send(new DescribeInstancesCommand({}))
@@ -100,13 +100,25 @@ app.get('/api/ec2/filter/by-tag-value/:subject', async (req, res) => {
     }
 })
 
-app.get('/api/ec2/stop-all', async (req, res) => {
+app.post('/api/ec2/stop-all', async (req, res) => {
     const ec2client = new EC2Client({ region: REGION });
-    const params = { InstanceIds: 'i-0ba444c8cba22b763' };
+    const payload = req.body
 
     try {
-        const data = await ec2client.send(new StopInstancesCommand({ InstanceIds: ['i-0ba444c8cba22b763'] }));
+        const data = await ec2client.send(new StopInstancesCommand({ InstanceIds: payload.instanceIds }));
         console.log("Success", data.StoppingInstances);
+    } catch (err) {
+        console.log("Error", err);
+    }
+})
+
+app.post('/api/ec2/terminate-all', async (req, res) => {
+    const ec2client = new EC2Client({ region: REGION });
+    const payload = req.body
+
+    try {
+        const data = await ec2client.send(new TerminateInstancesCommand({ InstanceIds: payload.instanceIds }));
+        console.log("Success", data.TerminatingInstances);
     } catch (err) {
         console.log("Error", err);
     }
@@ -158,7 +170,7 @@ app.get('/api/s3/list-buckets', async (req, res) => {
 
 app.get('/api/s3/filter/by-tag-value/:tagVal', async (req, res) => {
     const { tagVal } = req.params
-    const s3 = new S3Client({ region: REGION, credentials: fromIni({ profile: 'en-course' }) });
+    const s3 = new S3Client({ region: 'us-east-1', credentials: fromIni({ profile: 'default' }) })
     let arr = []
     let bucket = ['']
     let tagObj
@@ -210,8 +222,27 @@ app.get('/api/rds/filter/by-tag-value', async (req, res) => {
 
 // Cost Explorer
 
+app.get('/api/dimension', async (req, res) => {
+    const costExp = new CostExplorer({ region: 'us-east-1', credentials: fromIni({ profile: 'default' }) })
+    const response = await costExp.send(new GetDimensionValuesCommand({
+        Context: 'COST_AND_USAGE',
+        Dimension: 'RECORD_TYPE',
+        // Filter: {
+        //     Dimensions: {
+        //         Key: 'REGION',
+        //         Values: ['us-east-1']
+        //     }
+        // },
+        TimePeriod: {
+            End: '2021-05-20',
+            Start: '2021-04-01'
+        }
+    }))
+    res.json(response)
+})
+
 app.post('/api/cost', async (req, res) => {
-    const costExp = new CostExplorer({ region: REGION, credentials: fromIni({ profile: 'costexp' }) })
+    const costExp = new CostExplorer({ region: 'us-east-1', credentials: fromIni({ profile: 'prj_costexp' }) })
     const payload = req.body
     let arr = []
     let costarr = ['']
@@ -221,14 +252,47 @@ app.post('/api/cost', async (req, res) => {
     let end_date = payload.end_date
     let aws_tag_value = payload.aws_tag_value
 
+    // try {
+    //     let data = await costExp.send(new GetCostAndUsageCommand({
+    //         Filter: {
+    //             Dimensions: {
+    //                 Key: 'RECORD_TYPE',
+    //                 Values: ['Usage'],
+
+    //             },
+    //         },
+    //         Metrics: ['UnblendedCost'],
+    //         Granularity: granularity,
+    //         TimePeriod: {
+    //             Start: start_date,
+    //             End: end_date
+    //         },
+    //         GroupBy: [
+    //             // {
+    //             //     Type: "DIMENSION",
+    //             //     Key: "SERVICE"
+    //             // }
+    //             {
+    //                 Type: 'TAG',
+    //                 Key: `Owner$${aws_tag_value}`
+    //             }
+    //         ]
+    //     }))
+    //     res.json(data)
+    // } catch (error) {
+    //     console.log('cost error', error)
+    // }
+
+
     for (let index = 0; index < costarr.length; index++) {
         try {
             let data = await costExp.send(new GetCostAndUsageCommand({
                 Filter: {
                     Dimensions: {
                         Key: 'SERVICE',
-                        Values: [service]
-                    }
+                        Values: [service],
+
+                    },
                 },
                 Metrics: ['UnblendedCost'],
                 Granularity: granularity,
@@ -264,7 +328,9 @@ app.post('/api/cost', async (req, res) => {
 
 // VPC
 app.post('/api/ec2/vpc', async (req, res) => {
-    const vpc = new EC2Client({ region: REGION, credentials: fromIni({ profile: 'default' }) })
+    const vpc = new EC2Client({ region: 'us-east-1', credentials: fromIni({ profile: 'prj_costexp' }) })
+    const payload = req.body
+    console.log('payload', payload)
     try {
         let data = await vpc.send(new DescribeVpcsCommand({
             Filters: [
@@ -273,7 +339,7 @@ app.post('/api/ec2/vpc', async (req, res) => {
                     Values: ['Name']
                 }
             ],
-            VpcIds: []
+            VpcIds: payload.VpcIds
         }))
         res.json(data)
     } catch (error) {

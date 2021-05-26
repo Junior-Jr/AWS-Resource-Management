@@ -6,6 +6,7 @@ const subjectSchema = new Schema({
   subject: String,
   lecturer: String,
   section: String,
+  budget: Number,
   aws_tag_value: String
 },
   {

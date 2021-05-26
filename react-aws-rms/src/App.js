@@ -11,6 +11,7 @@ import Error500 from './components/Error500'
 import Project from './views/Project'
 import CostControl from './views/CostControl'
 import ProjectDetail from './views/ProjectDetail'
+import VPCDetail from './views/VPCDetail'
 
 const { Header, Content, Footer } = Layout;
 
@@ -33,6 +34,9 @@ function App() {
             </Route>
             <Route path="/class/:subject_id/:aws_tag_value">
               <ClassDetail />
+            </Route>
+            <Route path="/vpc/:vpc_id">
+              <VPCDetail />
             </Route>
             <Route path="/project/:subject_id/:aws_tag_value">
               <ProjectDetail />

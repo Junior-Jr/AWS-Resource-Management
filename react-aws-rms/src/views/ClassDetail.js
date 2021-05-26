@@ -1,6 +1,6 @@
-import { useParams } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { Button, Card, Input, PageHeader, Tabs, Tag, Table, Tooltip } from 'antd'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import Error500 from '../components/Error500'
 
 const axios = require('axios')
@@ -11,6 +11,7 @@ function ClassDetail() {
     const [ec2, setEC2] = useState([])
     const [s3, setS3] = useState([])
     const [isError, setIsError] = useState(false)
+    const [vpc, setVpc] = useState([])
 
     const { TextArea } = Input
 
@@ -25,6 +26,7 @@ function ClassDetail() {
         try {
             const response = await axios.get(`http://localhost:9000/api/ec2/filter/by-tag-value/${aws_tag_value}`)
             setEC2(response.data)
+            await getVPCDetail(response.data)
             console.log(ec2)
 
         } catch (error) {
@@ -45,16 +47,16 @@ function ClassDetail() {
         }
     }
 
-    const getVPCDetail = async () => {
+    const getVPCDetail = async (ec2) => {
         try {
             let vpcArr = []
-            for (let index = 0; index < ec2.length; index++) {
-                vpcArr.push(ec2[index].VpcId)
-            }
+            ec2.map((instance) => vpcArr.push(instance.VpcId))
             console.log('arr', vpcArr)
             const response = await axios.post('http://localhost:9000/api/ec2/vpc', {
-                'vpcIds': vpcArr
+                'VpcIds': vpcArr
             })
+            setVpc(response.data.Vpcs)
+            console.log('VPC response', response.data.Vpcs)
 
         } catch (error) {
             console.log('error vpc', error)
@@ -143,6 +145,25 @@ function ClassDetail() {
 
     ]
 
+    const vpcColumns = [
+        {
+            title: 'VPC ID',
+            dataIndex: 'VpcId',
+            key: ''
+        },
+        {
+            title: 'CIDR Block',
+            dataIndex: 'CidrBlock',
+            key: ''
+        },
+        {
+            title: 'State',
+            dataIndex: 'State',
+            key: ''
+        }
+
+    ]
+
     return (
         <div>
             <PageHeader
@@ -163,7 +184,11 @@ function ClassDetail() {
                     </Card>
                 </TabPane>
                 <TabPane tab='EC2' key='2'>
-                    <Table columns={ec2Columns} dataSource={ec2} />
+                    <span>
+                        <Table columns={ec2Columns} dataSource={ec2} />
+                        <Table columns={vpcColumns} dataSource={vpc} />
+                    </span>
+
                     {renderError()}
                 </TabPane>
                 <TabPane tab='S3' key='3'>

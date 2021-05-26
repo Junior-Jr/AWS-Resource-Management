@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Button, Card, Col, Form, Input, message, Modal, PageHeader, Popconfirm, Row, Spin, Statistic, Tooltip } from "antd"
+import { Button, Card, Col, Form, Input, message, Modal, PageHeader, Popconfirm, Row, Spin, Statistic, Tooltip } from 'antd'
 import { ExclamationCircleOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import Error500 from './Error500'
 
@@ -15,8 +15,10 @@ function Class() {
   const [subject, setSubject] = useState('')
   const [lecturer, setLecturer] = useState('')
   const [section, setSection] = useState('')
+  const [budget, setBudget] = useState()
   const [awsTag, setAWSTag] = useState('')
   const [isError, setIsError] = useState(false)
+  const [ec2, setEC2] = useState([])
 
   useEffect(() => {
     getSubject()
@@ -24,15 +26,15 @@ function Class() {
 
   const getSubject = async () => {
     try {
-      const response = await axios.get('http://localhost:9000/api/subject');
-      setData(response.data);
-      setIsError(false);
-      console.log(response.data);
-      setLoading(true);
+      const response = await axios.get('http://localhost:9000/api/subject')
+      setData(response.data)
+      setIsError(false)
+      console.log(response.data)
+      setLoading(true)
 
     } catch (error) {
-      console.error(error);
-      setIsError(true);
+      console.error(error)
+      setIsError(true)
     }
   }
 
@@ -43,15 +45,16 @@ function Class() {
         'subject': subject,
         'lecturer': lecturer,
         'section': section,
+        'budget': budget,
         'aws_tag_value': awsTag
       })
-      setUpdate('add');
+      setUpdate('add')
       console.log(response.data)
 
     } catch (error) {
       console.log(error)
     };
-    setIsModalVisible(false);
+    setIsModalVisible(false)
   }
 
   const deleteSubject = async (id, subject) => {
@@ -60,17 +63,50 @@ function Class() {
       const response = await axios.post('http://localhost:9000/api/subject/delete', {
         'id': id
       })
-      setUpdate('delete');
+      setUpdate('delete')
       console.log(response.data)
 
     } catch (error) {
       console.log(error)
-    };
+    }
+  }
+
+  const stopEC2 = async (aws_tag_value) => {
+    try {
+      message.success(`Stopping All EC2 Instances that has tag value "${aws_tag_value}"`, 2.75)
+      const response = await axios.get('http://localhost:9000/api/ec2/filter/by-tag-value/' + aws_tag_value)
+      setEC2(response.data)
+      let instanceIDArr = await ec2.map(data => data.InstanceId)
+      const request = await axios.post('http://localhost:9000/api/ec2/stop-all', {
+        'instanceIds': instanceIDArr
+      })
+    } catch (error) {
+      message.success(`All EC2 Instances has been STOPPED`, 2.75)
+      console.error(error)
+      setIsError(true)
+    }
+  }
+
+  const terminateEC2 = async (aws_tag_value) => {
+    try {
+      message.success(`Terminating All EC2 Instances that has tag value "${aws_tag_value}"`, 2.75)
+      const response = await axios.get('http://localhost:9000/api/ec2/filter/by-tag-value/' + aws_tag_value)
+      setEC2(response.data)
+      let instanceIDArr = await ec2.map(data => data.InstanceId)
+      const request = await axios.post('http://localhost:9000/api/ec2/terminate-all', {
+        'instanceIds': instanceIDArr
+      })
+    } catch (error) {
+      message.success(`All EC2 Instances has been TERMINATED`, 2.75)
+      console.error(error)
+      setIsError(true)
+    }
   }
 
   const renderSubject = () => {
 
     return data.map(data => {
+
       return (
         <Col span={12} justify='center'>
           <Card
@@ -101,21 +137,35 @@ function Class() {
             </Row>
             <Row gutter={[16, 16]}>
               <Col span={8}>
-                <Button>
-                  Stop All EC2
+                <Popconfirm
+                  title='Are you sure to STOP ALL EC2 Instances?'
+                  icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
+                  okText='Stop'
+                  onConfirm={() => stopEC2(data.aws_tag_value)}
+                >
+                  <Button>
+                    Stop All EC2
                   </Button>
+                </Popconfirm>
               </Col>
               <Col span={8}>
-                <Button danger>
-                  Terminate All EC2
+                <Popconfirm
+                  title='Are you sure to TERMINATE ALL EC2 Instances?'
+                  icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
+                  okText='Terminate'
+                  onConfirm={() => terminateEC2(data.aws_tag_value)}
+                >
+                  <Button danger>
+                    Terminate All EC2
                   </Button>
+                </Popconfirm>
               </Col>
             </Row>
           </Card>
         </Col>
       )
     })
-  };
+  }
 
   const renderError = () => {
     if (isError === true) {
@@ -123,19 +173,19 @@ function Class() {
         <Error500 />
       )
     }
-  };
+  }
 
   const showModal = () => {
     setIsModalVisible(true);
-  };
+  }
 
   const handleCancel = () => {
     setIsModalVisible(false)
-  };
+  }
 
   const onFinish = () => {
     addSubject()
-  };
+  }
 
   return (
     <div>
@@ -155,6 +205,9 @@ function Class() {
           </Form.Item>
           <Form.Item label='Section'>
             <Input type='text' value={section} name='section' onChange={(event) => setSection(event.target.value)} autoComplete='off' />
+          </Form.Item>
+          <Form.Item label='Budget'>
+            <Input type='text' value={budget} name='budget' onChange={(event) => setBudget(event.target.value)} autoComplete='off' />
           </Form.Item>
           <Form.Item label='AWS Resource Tag Value'>
             <Tooltip title='Please Enter AWS Resource Tag Exactly Match on AWS' color='yellow' placement='bottomLeft'>
