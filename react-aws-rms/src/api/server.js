@@ -9,7 +9,7 @@ const { fromIni } = require("@aws-sdk/credential-provider-ini");
 const { EC2Client, DescribeInstancesCommand, StopInstancesCommand, DescribeSecurityGroupsCommand, DescribeVpcsCommand, TerminateInstancesCommand } = require('@aws-sdk/client-ec2')
 const { S3Client, ListBucketsCommand, GetBucketTaggingCommand } = require("@aws-sdk/client-s3");
 const { DescribeDBInstancesCommand, RDSClient } = require('@aws-sdk/client-rds')
-const { CostExplorer, CostExplorerClient, GetCostAndUsageCommand, DateInterval, GetDimensionValuesCommand } = require('@aws-sdk/client-cost-explorer')
+const { CostExplorer, GetCostAndUsageCommand, GetDimensionValuesCommand } = require('@aws-sdk/client-cost-explorer')
 
 mongoose.connect('mongodb+srv://admin:AWSadmin@cluster0.xasek.mongodb.net/aws-rms?retryWrites=true&w=majority', {
     useNewUrlParser: true
@@ -85,8 +85,8 @@ app.get('/api/ec2/describe', async (req, res) => {
 
 app.get('/api/ec2/filter/by-tag-value/:subject', async (req, res) => {
     const { subject } = req.params
-    // let ec2client = new EC2Client({ region: REGION, credentials: fromIni({ profile: 'en-course' }) })
-    let ec2client = new EC2Client({ region: 'us-east-1', credentials: fromIni({ profile: 'default' }) })
+    let ec2client = new EC2Client({ region: 'us-east-1', credentials: fromIni({ profile: 'en-course' }) })
+    // let ec2client = new EC2Client({ region: 'us-east-1', credentials: fromIni({ profile: 'prj_costexp' }) })
 
     try {
         let data = await ec2client.send(new DescribeInstancesCommand({}))
@@ -145,56 +145,59 @@ app.get('/api/s3/list-buckets', async (req, res) => {
     let bucket = ['']
     let tagObj
 
-    for (let index = 0; index < bucket.length;) {
+    let bucketLists = await s3.send(new ListBucketsCommand({}))
+    buckets = bucketLists.Buckets
+    let bucketWithTag = buckets.map(async bucket => {
         try {
-            let bucketLists = await s3.send(new ListBucketsCommand({}))
-            bucket = bucketLists.Buckets
 
-            let tag = await s3.send(new GetBucketTaggingCommand({ Bucket: bucket[index].Name }))
+            let tag = await s3.send(new GetBucketTaggingCommand({ Bucket: bucket.Name }))
             tagObj = tag.TagSet
-            console.log('success ' + bucket[index].Name)
+            console.log('success ' + bucket.Name)
 
-            arr.push({ Bucket: bucket[index].Name, Tags: tagObj })
-            index++
+            arr.push({ Bucket: bucket.Name, Tags: tagObj })
+
 
         } catch (error) {
-            console.log('Error ' + bucket[index].Name);
+            console.log('Error ' + bucket.Name);
             tagObj = []
 
-            arr.push({ Bucket: bucket[index].Name, Tags: tagObj })
-            index++
+            arr.push({ Bucket: bucket.Name, Tags: tagObj })
+
         }
-    }
+    })
+    await Promise.all(bucketWithTag)
+    console.log('test')
     res.json(arr)
 })
 
 app.get('/api/s3/filter/by-tag-value/:tagVal', async (req, res) => {
     const { tagVal } = req.params
-    const s3 = new S3Client({ region: 'us-east-1', credentials: fromIni({ profile: 'default' }) })
+    const s3 = new S3Client({ region: 'us-east-1', credentials: fromIni({ profile: 'en-course' }) })
     let arr = []
     let bucket = ['']
     let tagObj
 
-    for (let index = 0; index < bucket.length;) {
+    let bucketLists = await s3.send(new ListBucketsCommand({}))
+    buckets = bucketLists.Buckets
+    let bucketWithTag = buckets.map(async bucket => {
         try {
-            let bucketLists = await s3.send(new ListBucketsCommand({}))
-            bucket = bucketLists.Buckets
 
-            let tag = await s3.send(new GetBucketTaggingCommand({ Bucket: bucket[index].Name }))
+            let tag = await s3.send(new GetBucketTaggingCommand({ Bucket: bucket.Name }))
             tagObj = tag.TagSet
-            console.log('success ' + bucket[index].Name)
+            console.log('success ' + bucket.Name)
 
-            arr.push({ Bucket: bucket[index].Name, Tags: tagObj })
-            index++
+            arr.push({ Bucket: bucket.Name, Tags: tagObj })
+
 
         } catch (error) {
-            console.log('Error ' + bucket[index].Name);
+            console.log('Error ' + bucket.Name);
             tagObj = []
 
-            arr.push({ Bucket: bucket[index].Name, Tags: tagObj })
-            index++
+            arr.push({ Bucket: bucket.Name, Tags: tagObj })
+
         }
-    }
+    })
+    await Promise.all(bucketWithTag)
 
     try {
         let filter = arr.filter(element => element.Tags.some(tag => tag.Value === tagVal))
@@ -208,13 +211,15 @@ app.get('/api/s3/filter/by-tag-value/:tagVal', async (req, res) => {
 
 // RDS
 
-app.get('/api/rds/filter/by-tag-value', async (req, res) => {
-    const rds = new RDSClient({ region: REGION })
+app.get('/api/rds/filter/by-tag-value/:subject', async (req, res) => {
+    const { subject } = req.params
+    const rds = new RDSClient({ region: 'us-east-1', credentials: fromIni({ profile: 'en-course' }) })
 
     try {
         let data = await rds.send(new DescribeDBInstancesCommand({}))
-        let dbInstances = data.DBInstances
-        res.json(dbInstances)
+        let dbInstances = data.DBInstances.map((el) => el)
+        let filter = dbInstances.filter(element => element.TagList.some(tag => tag.Value === subject))
+        res.json(filter)
     } catch (error) {
         console.log('error', error)
     }
@@ -252,78 +257,54 @@ app.post('/api/cost', async (req, res) => {
     let end_date = payload.end_date
     let aws_tag_value = payload.aws_tag_value
 
-    // try {
-    //     let data = await costExp.send(new GetCostAndUsageCommand({
-    //         Filter: {
-    //             Dimensions: {
-    //                 Key: 'RECORD_TYPE',
-    //                 Values: ['Usage'],
-
-    //             },
-    //         },
-    //         Metrics: ['UnblendedCost'],
-    //         Granularity: granularity,
-    //         TimePeriod: {
-    //             Start: start_date,
-    //             End: end_date
-    //         },
-    //         GroupBy: [
-    //             // {
-    //             //     Type: "DIMENSION",
-    //             //     Key: "SERVICE"
-    //             // }
-    //             {
-    //                 Type: 'TAG',
-    //                 Key: `Owner$${aws_tag_value}`
-    //             }
-    //         ]
-    //     }))
-    //     res.json(data)
-    // } catch (error) {
-    //     console.log('cost error', error)
-    // }
-
-
-    for (let index = 0; index < costarr.length; index++) {
-        try {
-            let data = await costExp.send(new GetCostAndUsageCommand({
-                Filter: {
-                    Dimensions: {
-                        Key: 'SERVICE',
-                        Values: [service],
-
-                    },
-                },
-                Metrics: ['UnblendedCost'],
-                Granularity: granularity,
-                TimePeriod: {
-                    Start: start_date,
-                    End: end_date
-                },
-                GroupBy: [
-                    // {
-                    //     Type: "DIMENSION",
-                    //     Key: "SERVICE"
-                    // }
+    try {
+        let data = await costExp.send(new GetCostAndUsageCommand({
+            Filter: {
+                And: [
                     {
-                        Type: 'TAG',
-                        Key: `Owner$${aws_tag_value}`
-                    }
-                ]
-            }))
-            costarr = data.ResultsByTime
-            let amount = parseFloat(data.ResultsByTime[index].Groups[0].Metrics.UnblendedCost.Amount).toFixed(2)
-            let start = data.ResultsByTime[index].TimePeriod.Start
-            let end = data.ResultsByTime[index].TimePeriod.End
-            arr.push({ Amount: amount, Start: start, End: end })
-            console.log(data.ResultsByTime[index].Groups[0].Metrics.UnblendedCost)
-            console.log(service)
+                        Dimensions: {
+                            Key: 'SERVICE',
+                            Values: [service]
+                        }
+                    },
+                    {
+                        Dimensions: {
+                            Key: 'RECORD_TYPE',
+                            Values: ['Usage'],
 
-        } catch (error) {
-            console.log(error)
-        }
+                        }
+                    }
+                ],
+            },
+            Metrics: ['UnblendedCost'],
+            Granularity: granularity,
+            TimePeriod: {
+                Start: start_date,
+                End: end_date
+            },
+            GroupBy: [
+                // {
+                //     Type: "DIMENSION",
+                //     Key: "SERVICE"
+                // }
+                {
+                    Type: 'TAG',
+                    Key: `Owner$${aws_tag_value}`
+                }
+            ]
+        }))
+        data.ResultsByTime.map(data => {
+            let amount = parseFloat(data.Groups[0].Metrics.UnblendedCost.Amount).toFixed(2)
+            let start = data.TimePeriod.Start
+            let end = data.TimePeriod.End
+            arr.push({ Amount: amount, Start: start, End: end })
+        })
+        res.json(arr)
+    } catch (error) {
+        console.log(error)
     }
-    res.json(arr)
+
+
 })
 
 // VPC

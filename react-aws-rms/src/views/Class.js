@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Card, Col, Form, Input, message, Modal, PageHeader, Popconfirm, Row, Spin, Statistic, Tooltip } from 'antd'
 import { ExclamationCircleOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
-import Error500 from './Error500'
+import Error500 from '../components/Error500'
 
 const axios = require('axios')
 

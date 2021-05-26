@@ -3,7 +3,7 @@ import { Layout } from 'antd'
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom"
 import logo from './nav-thai.svg'
 import './App.css'
-import Class from './components/Class'
+import Class from './views/Class'
 import ClassDetail from './views/ClassDetail'
 import CostDashboard from './views/CostDashboard'
 import Navbar from './components/Navbar'

@@ -10,6 +10,7 @@ function ClassDetail() {
     const { aws_tag_value } = useParams()
     const [ec2, setEC2] = useState([])
     const [s3, setS3] = useState([])
+    const [rds, setRDS] = useState([])
     const [isError, setIsError] = useState(false)
     const [vpc, setVpc] = useState([])
 
@@ -19,6 +20,7 @@ function ClassDetail() {
     useEffect(() => {
         getEC2Detail()
         getS3Detail()
+        getRDSDetail()
         getVPCDetail()
     }, [])
 
@@ -47,6 +49,19 @@ function ClassDetail() {
         }
     }
 
+    const getRDSDetail = async () => {
+        try {
+            const response = await axios.get(`http://localhost:9000/api/rds/filter/by-tag-value/${aws_tag_value}`)
+            setRDS(response.data)
+            console.log(response.data)
+
+        } catch (error) {
+            console.error(error)
+            setIsError(true)
+        }
+    }
+
+
     const getVPCDetail = async (ec2) => {
         try {
             let vpcArr = []
@@ -63,11 +78,27 @@ function ClassDetail() {
         }
     }
 
-    const tagColor = (dataIndex) => {
+    const ec2tagColor = (dataIndex) => {
         let color = ''
         if (dataIndex === 'stopped') {
             color = 'volcano'
         } else if (dataIndex === 'running') {
+            color = 'green'
+        } else if (dataIndex === 'stopping' || dataIndex === 'shutting-down') {
+            color = 'warning'
+        } else if (dataIndex === 'rebooting') {
+            color = 'cyan'
+        }
+        return (
+            <Tag color={color} >{dataIndex.toUpperCase()}</Tag>
+        )
+    }
+
+    const rdstagColor = (dataIndex) => {
+        let color = ''
+        if (dataIndex === 'stopped') {
+            color = 'volcano'
+        } else if (dataIndex === 'available') {
             color = 'green'
         } else if (dataIndex === 'stopping' || dataIndex === 'shutting-down') {
             color = 'warning'
@@ -118,9 +149,14 @@ function ClassDetail() {
             key: ''
         },
         {
+            title: 'Region & AZ',
+            dataIndex: ['Placement', 'AvailabilityZone'],
+            key: ''
+        },
+        {
             title: 'Instance State',
             dataIndex: ['State', 'Name'],
-            render: (dataIndex) => (tagColor(dataIndex)),
+            render: (dataIndex) => (ec2tagColor(dataIndex)),
             key: ''
 
         },
@@ -131,6 +167,7 @@ function ClassDetail() {
 
         }
     ]
+
     const s3Columns = [
         {
             title: 'Owner',
@@ -140,6 +177,50 @@ function ClassDetail() {
         {
             title: 'Bucket Name',
             dataIndex: 'Bucket',
+            key: ''
+        },
+
+    ]
+
+    const rdsColumns = [
+        {
+            title: 'DB identifier',
+            dataIndex: 'DBInstanceIdentifier',
+            key: ''
+        },
+        {
+            title: 'DB Instance Class',
+            dataIndex: 'DBInstanceClass',
+            key: ''
+        },
+        {
+            title: 'Engine',
+            dataIndex: 'Engine',
+            key: ''
+        },
+        {
+            title: 'Region & AZ',
+            dataIndex: 'AvailabilityZone',
+            key: ''
+        },
+        {
+            title: 'DB Instance Status',
+            dataIndex: 'DBInstanceStatus',
+            render: (dataIndex) => (rdstagColor(dataIndex)),
+            key: ''
+
+        },
+
+    ]
+
+    const sgColumns = [
+        {
+            title: 'Security Group Name',
+            dataIndex: 'SecurityGroups',
+            render: (dataIndex) => (
+
+                dataIndex.map(data => data.GroupName)
+            ),
             key: ''
         },
 
@@ -169,7 +250,7 @@ function ClassDetail() {
             <PageHeader
                 className='site-page-header'
                 onBack={() => window.history.back()}
-                title='Title'
+                title='Back'
             />
             <Tabs defaultActiveKey='1' size='large' onChange={callback}>
                 <TabPane tab='Class Policy' key='1'>
@@ -186,6 +267,7 @@ function ClassDetail() {
                 <TabPane tab='EC2' key='2'>
                     <span>
                         <Table columns={ec2Columns} dataSource={ec2} />
+                        <Table columns={sgColumns} dataSource={ec2} />
                         <Table columns={vpcColumns} dataSource={vpc} />
                     </span>
 
@@ -196,7 +278,7 @@ function ClassDetail() {
                     {renderError()}
                 </TabPane>
                 <TabPane tab='RDS' key='4'>
-
+                    <Table columns={rdsColumns} dataSource={rds} />
                     {renderError()}
                 </TabPane>
             </Tabs>

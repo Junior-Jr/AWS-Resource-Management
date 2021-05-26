@@ -16,6 +16,7 @@ const CostDashboard = () => {
     const [costData, setCostData] = useState([])
     const [alert80, setAlert80] = useState(false)
     const [alert90, setAlert90] = useState(false)
+    const [alert100, setAlert100] = useState(false)
     const [subject, setSubject] = useState([])
 
     const { RangePicker } = DatePicker
@@ -91,9 +92,10 @@ const CostDashboard = () => {
         <Fragment>
             {alert80 ? <Alert message="Warning! Course Budget has used at 80%" banner style={{ marginTop: '1vh' }} /> : <> </>}
             {alert90 ? <Alert message="Alert! Course Budget has used at 90%" type='error' banner style={{ marginTop: '1vh' }} /> : <> </>}
+            {alert100 ? <Alert message="Alert! Course Budget had exceed" type='error' banner style={{ marginTop: '1vh' }} /> : <> </>}
             <Row id='cost-row' gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
                 <Col id='cost-col-left' span={12}>
-                    <Card style={{ width: '30vw' }}>
+                    <Card style={{ width: '35vw' }}>
                         <RangePicker onChange={handleChangeDate} />
                         <Select defaultValue="HOURLY" style={{ width: 120 }} onChange={handleChangeGranularity}>
                             <Option value="HOURLY">Hourly</Option>
@@ -109,22 +111,12 @@ const CostDashboard = () => {
                             <Option value="Amazon Relational Database Service">RDS</Option>
                             <Option value="Amazon Simple Storage Service">S3</Option>
                         </Select>
-                        {/* <VictoryChart theme={VictoryTheme.material} domain={{ y: [0, 1] }}>
-                            <VictoryBar
-                                style={{ data: { fill: '#634cc7' } }}
-                                data={costData}
-                                y='Amount'
-                                x={(datum) => datum.Start}
-                                labels={({ datum }) => `Cost: $${parseFloat(datum.Amount).toFixed(2)}`}
-                                labelComponent={<VictoryTooltip constrainToVisibleArea />}
-                            />
-                        </VictoryChart> */}
                         <BarChart
-                            width={500}
+                            width={450}
                             height={300}
                             data={costData}
                             margin={{
-                                top: 5,
+                                top: 25,
                                 right: 30,
                                 left: 20,
                                 bottom: 5
@@ -148,17 +140,25 @@ const CostDashboard = () => {
                                 let costTotal = 0.00
                                 costData.forEach(({ Amount }) => {
                                     costTotal += parseFloat(Amount)
-                                    if (costTotal >= (subject[0].budget * 50 / 100) && costTotal < (subject[0].budget * 52 / 100)) {
+                                    if (costTotal >= (subject[0].budget * 80 / 100) && costTotal < (subject[0].budget * 90 / 100)) {
                                         setAlert80(true)
                                         setAlert90(false)
+                                        setAlert100(false)
                                     }
-                                    else if (costTotal >= (subject[0].budget * 52 / 100)) {
+                                    else if (costTotal >= (subject[0].budget * 90 / 100) && costTotal < (subject[0].budget * 100 / 100)) {
                                         setAlert90(true)
+                                        setAlert80(false)
+                                        setAlert100(false)
+                                    }
+                                    else if (costTotal > (subject[0].budget * 100 / 100)) {
+                                        setAlert100(true)
+                                        setAlert90(false)
                                         setAlert80(false)
                                     }
                                     else {
                                         setAlert90(false)
                                         setAlert80(false)
+                                        setAlert100(false)
                                     }
                                 })
 

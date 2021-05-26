@@ -111,7 +111,7 @@ function ProjectDetail() {
             <PageHeader
                 className='site-page-header'
                 onBack={() => window.history.back()}
-                title='Title'
+                title='Back'
             />
             <Tabs defaultActiveKey='1' size='large' onChange={callback}>
                 <TabPane tab='Class Policy' key='1'>
